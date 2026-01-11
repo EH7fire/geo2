@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dash Game</title>
+<style>
+body{
+  margin:0;
+  background:#111;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+canvas{
+  background:#1e293b;
+  border-radius:12px;
+}
+</style>
+</head>
+<body>
+
+<canvas id="game" width="360" height="200"></canvas>
+
+<script>
+const c = document.getElementById("game");
+const ctx = c.getContext("2d");
+
+let player = {x:40,y:140,w:20,h:20,vy:0};
+let gravity = 0.6;
+let jump = -10;
+let ground = 160;
+let obstacles = [];
+let frame = 0;
+
+function reset(){
+  player.y = ground;
+  player.vy = 0;
+  obstacles = [];
+  frame = 0;
+}
+
+function drawPlayer(){
+  ctx.fillStyle="#22c55e";
+  ctx.fillRect(player.x,player.y,player.w,player.h);
+}
+
+function drawObstacle(o){
+  ctx.fillStyle="#ef4444";
+  ctx.beginPath();
+  ctx.moveTo(o.x,ground+20);
+  ctx.lineTo(o.x+20,ground+20);
+  ctx.lineTo(o.x+10,ground);
+  ctx.fill();
+}
+
+function update(){
+  ctx.clearRect(0,0,c.width,c.height);
+
+  // ground
+  ctx.fillStyle="#334155";
+  ctx.fillRect(0,ground+20,c.width,20);
+
+  // player physics
+  player.vy += gravity;
+  player.y += player.vy;
+  if(player.y>ground){player.y=ground;player.vy=0;}
+
+  // obstacles
+  if(frame%90===0){
+    obstacles.push({x:c.width});
+  }
+
+  obstacles.forEach(o=>{
+    o.x-=4;
+    drawObstacle(o);
+
+    // collision
+    if(
+      player.x < o.x+20 &&
+      player.x+20 > o.x &&
+      player.y+20 > ground
+    ){
+      reset();
+    }
+  });
+
+  obstacles = obstacles.filter(o=>o.x>-20);
+
+  drawPlayer();
+  frame++;
+  requestAnimationFrame(update);
+}
+
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space" && player.y===ground){
+    player.vy=jump;
+  }
+});
+
+c.addEventListener("touchstart",()=>{
+  if(player.y===ground){
+    player.vy=jump;
+  }
+});
+
+update();
+</script>
+
+</body>
+</html>
